@@ -26,12 +26,42 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import com.jmethods.catatumbo.impl.Cache;
+import com.jmethods.catatumbo.impl.IntrospectionUtils;
+import com.jmethods.catatumbo.mappers.BigDecimalMapper;
+import com.jmethods.catatumbo.mappers.BooleanMapper;
+import com.jmethods.catatumbo.mappers.ByteArrayMapper;
+import com.jmethods.catatumbo.mappers.CharArrayMapper;
+import com.jmethods.catatumbo.mappers.CharMapper;
+import com.jmethods.catatumbo.mappers.CollectionMapperFactory;
+import com.jmethods.catatumbo.mappers.DateMapper;
+import com.jmethods.catatumbo.mappers.DecimalMapper;
+import com.jmethods.catatumbo.mappers.DoubleMapper;
+import com.jmethods.catatumbo.mappers.EmbeddedObjectMapper;
+import com.jmethods.catatumbo.mappers.EnumMapper;
+import com.jmethods.catatumbo.mappers.FloatMapper;
+import com.jmethods.catatumbo.mappers.GeoLocationMapper;
+import com.jmethods.catatumbo.mappers.IntegerMapper;
+import com.jmethods.catatumbo.mappers.KeyMapper;
+import com.jmethods.catatumbo.mappers.LocalDateMapper;
+import com.jmethods.catatumbo.mappers.LocalDateTimeMapper;
+import com.jmethods.catatumbo.mappers.LocalTimeMapper;
+import com.jmethods.catatumbo.mappers.LongMapper;
+import com.jmethods.catatumbo.mappers.MapMapper;
+import com.jmethods.catatumbo.mappers.OffsetDateTimeMapper;
+import com.jmethods.catatumbo.mappers.ShortMapper;
+import com.jmethods.catatumbo.mappers.StringMapper;
 
 /**
  * A factory for producing data mappers that are used for mapping fields of
@@ -251,6 +281,9 @@ public class MapperFactory {
 		cache.put(GeoLocation.class, new GeoLocationMapper());
 		cache.put(DatastoreKey.class, new KeyMapper());
 		cache.put(LocalDate.class, new LocalDateMapper());
+		cache.put(LocalTime.class, new LocalTimeMapper());
+		cache.put(LocalDateTime.class, new LocalDateTimeMapper());
+		cache.put(OffsetDateTime.class, new OffsetDateTimeMapper());
 	}
 
 	/**
