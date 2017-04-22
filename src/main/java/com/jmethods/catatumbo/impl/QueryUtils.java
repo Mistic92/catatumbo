@@ -16,18 +16,17 @@
 
 package com.jmethods.catatumbo.impl;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
+import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.Blob;
 import com.google.cloud.datastore.Cursor;
-import com.google.cloud.datastore.DateTime;
 import com.google.cloud.datastore.GqlQuery;
 import com.jmethods.catatumbo.DatastoreCursor;
 import com.jmethods.catatumbo.DatastoreKey;
 import com.jmethods.catatumbo.GeoLocation;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Utility methods for GQL Queries.
@@ -105,10 +104,8 @@ public class QueryUtils {
 			queryBuilder.addBinding(String.valueOf((char) binding));
 		} else if (binding instanceof String) {
 			queryBuilder.addBinding((String) binding);
-		} else if (binding instanceof Calendar) {
-			queryBuilder.addBinding(DateTime.copyFrom((Calendar) binding));
 		} else if (binding instanceof Date) {
-			queryBuilder.addBinding(DateTime.copyFrom((Date) binding));
+			queryBuilder.addBinding(Timestamp.of((Date) binding));
 		} else if (binding instanceof byte[]) {
 			queryBuilder.addBinding(Blob.copyFrom((byte[]) binding));
 		} else if (binding instanceof DatastoreKey) {
@@ -147,10 +144,8 @@ public class QueryUtils {
 					queryBuilder.setBinding(bindingName, (boolean) bindingValue);
 				} else if (bindingValue instanceof String) {
 					queryBuilder.setBinding(bindingName, (String) bindingValue);
-				} else if (bindingValue instanceof Calendar) {
-					queryBuilder.setBinding(bindingName, DateTime.copyFrom((Calendar) bindingValue));
 				} else if (bindingValue instanceof Date) {
-					queryBuilder.setBinding(bindingName, DateTime.copyFrom((Date) bindingValue));
+					queryBuilder.setBinding(bindingName, Timestamp.of((Date) bindingValue));
 				} else if (bindingValue instanceof byte[]) {
 					queryBuilder.setBinding(bindingName, Blob.copyFrom((byte[]) bindingValue));
 				} else if (bindingValue instanceof DatastoreKey) {

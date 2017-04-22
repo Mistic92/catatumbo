@@ -16,38 +16,37 @@
 
 package com.jmethods.catatumbo.mappers;
 
-import java.util.Date;
-
-import com.google.cloud.datastore.DateTime;
-import com.google.cloud.datastore.DateTimeValue;
+import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.NullValue;
+import com.google.cloud.datastore.TimestampValue;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueBuilder;
 import com.jmethods.catatumbo.Mapper;
 
+import java.util.Date;
+
 /**
  * An implementation of {@link Mapper} for mapping Dates to/from Cloud
  * Datastore.
- * 
- * @author Sai Pullabhotla
  *
+ * @author Sai Pullabhotla
  */
 public class DateMapper implements Mapper {
 
-	@Override
-	public ValueBuilder<?, ?, ?> toDatastore(Object input) {
-		if (input == null) {
-			return NullValue.newBuilder();
-		}
-		return DateTimeValue.newBuilder(DateTime.copyFrom((Date) input));
-	}
+    @Override
+    public ValueBuilder<?, ?, ?> toDatastore(Object input) {
+        if (input == null) {
+            return NullValue.newBuilder();
+        }
+        return TimestampValue.newBuilder(Timestamp.of((Date) input));
+    }
 
-	@Override
-	public Object toModel(Value<?> input) {
-		if (input instanceof NullValue) {
-			return null;
-		}
-		return ((DateTimeValue) input).get().toDate();
-	}
+    @Override
+    public Object toModel(Value<?> input) {
+        if (input instanceof NullValue) {
+            return null;
+        }
+        return new Date(((TimestampValue) input).get().getNanos()*1000);
+    }
 
 }

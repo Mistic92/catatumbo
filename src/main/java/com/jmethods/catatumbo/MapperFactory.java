@@ -16,43 +16,22 @@
 
 package com.jmethods.catatumbo;
 
+import com.jmethods.catatumbo.impl.Cache;
+import com.jmethods.catatumbo.impl.IntrospectionUtils;
+import com.jmethods.catatumbo.mappers.*;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import com.jmethods.catatumbo.impl.Cache;
-import com.jmethods.catatumbo.impl.IntrospectionUtils;
-import com.jmethods.catatumbo.mappers.BigDecimalMapper;
-import com.jmethods.catatumbo.mappers.BooleanMapper;
-import com.jmethods.catatumbo.mappers.ByteArrayMapper;
-import com.jmethods.catatumbo.mappers.CalendarMapper;
-import com.jmethods.catatumbo.mappers.CharArrayMapper;
-import com.jmethods.catatumbo.mappers.CharMapper;
-import com.jmethods.catatumbo.mappers.CollectionMapperFactory;
-import com.jmethods.catatumbo.mappers.DateMapper;
-import com.jmethods.catatumbo.mappers.DecimalMapper;
-import com.jmethods.catatumbo.mappers.DoubleMapper;
-import com.jmethods.catatumbo.mappers.EmbeddedObjectMapper;
-import com.jmethods.catatumbo.mappers.EnumMapper;
-import com.jmethods.catatumbo.mappers.FloatMapper;
-import com.jmethods.catatumbo.mappers.GeoLocationMapper;
-import com.jmethods.catatumbo.mappers.IntegerMapper;
-import com.jmethods.catatumbo.mappers.KeyMapper;
-import com.jmethods.catatumbo.mappers.LocalDateMapper;
-import com.jmethods.catatumbo.mappers.LongMapper;
-import com.jmethods.catatumbo.mappers.MapMapper;
-import com.jmethods.catatumbo.mappers.ShortMapper;
-import com.jmethods.catatumbo.mappers.StringMapper;
 
 /**
  * A factory for producing data mappers that are used for mapping fields of
@@ -269,7 +248,6 @@ public class MapperFactory {
 		cache.put(byte[].class, new ByteArrayMapper());
 		cache.put(char[].class, new CharArrayMapper());
 		cache.put(Date.class, new DateMapper());
-		cache.put(Calendar.class, new CalendarMapper());
 		cache.put(GeoLocation.class, new GeoLocationMapper());
 		cache.put(DatastoreKey.class, new KeyMapper());
 		cache.put(LocalDate.class, new LocalDateMapper());

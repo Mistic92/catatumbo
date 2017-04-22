@@ -16,33 +16,16 @@
 
 package com.jmethods.catatumbo;
 
-import static org.junit.Assert.assertTrue;
+import com.jmethods.catatumbo.entities.Color;
+import com.jmethods.catatumbo.entities.EnumField.Size;
+import com.jmethods.catatumbo.mappers.*;
+import org.junit.Test;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.junit.Test;
-
-import com.jmethods.catatumbo.entities.Color;
-import com.jmethods.catatumbo.entities.EnumField.Size;
-import com.jmethods.catatumbo.mappers.BooleanMapper;
-import com.jmethods.catatumbo.mappers.ByteArrayMapper;
-import com.jmethods.catatumbo.mappers.CalendarMapper;
-import com.jmethods.catatumbo.mappers.CharArrayMapper;
-import com.jmethods.catatumbo.mappers.CharMapper;
-import com.jmethods.catatumbo.mappers.DateMapper;
-import com.jmethods.catatumbo.mappers.DoubleMapper;
-import com.jmethods.catatumbo.mappers.EnumMapper;
-import com.jmethods.catatumbo.mappers.FloatMapper;
-import com.jmethods.catatumbo.mappers.GeoLocationMapper;
-import com.jmethods.catatumbo.mappers.IntegerMapper;
-import com.jmethods.catatumbo.mappers.KeyMapper;
-import com.jmethods.catatumbo.mappers.LongMapper;
-import com.jmethods.catatumbo.mappers.MapMapper;
-import com.jmethods.catatumbo.mappers.ShortMapper;
-import com.jmethods.catatumbo.mappers.StringMapper;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Sai Pullabhotla
@@ -216,14 +199,6 @@ public class MapperFactoryTest {
 		assertTrue(mapper1 == mapper2);
 	}
 
-	@Test
-	public void testGetMapper_Calendar() {
-		Mapper mapper1 = MapperFactory.getInstance().getMapper(Calendar.class);
-		Mapper mapper2 = MapperFactory.getInstance().getMapper(Calendar.class);
-		assertTrue(mapper1 instanceof CalendarMapper);
-		assertTrue(mapper2 instanceof CalendarMapper);
-		assertTrue(mapper1 == mapper2);
-	}
 
 	@Test
 	public void testGetMapper_Enum_1() {

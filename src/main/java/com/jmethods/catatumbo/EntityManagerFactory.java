@@ -19,10 +19,10 @@ package com.jmethods.catatumbo;
 import com.google.auth.Credentials;
 import com.google.auth.http.HttpTransportFactory;
 import com.google.auth.oauth2.ServiceAccountCredentials;
-import com.google.cloud.HttpTransportOptions;
 import com.google.cloud.NoCredentials;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
+import com.google.cloud.http.HttpTransportOptions;
 import com.jmethods.catatumbo.impl.DefaultEntityManager;
 
 import java.io.File;
