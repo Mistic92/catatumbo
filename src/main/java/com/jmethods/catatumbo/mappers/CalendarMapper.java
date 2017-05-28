@@ -16,8 +16,7 @@
 
 package com.jmethods.catatumbo.mappers;
 
-import com.google.cloud.Timestamp;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 import com.google.cloud.Timestamp;
@@ -28,24 +27,24 @@ import com.google.cloud.datastore.ValueBuilder;
 import com.jmethods.catatumbo.Mapper;
 import com.jmethods.catatumbo.MappingException;
 
-import java.util.Date;
-
 /**
- * An implementation of {@link Mapper} for mapping Dates to/from Cloud
- * Datastore. Date objects are mapped to DateTime type in the Cloud Datastore.
- * The values are stored with a maximum precision of milliseconds.
- *
+ * An implementation of {@link Mapper} for mapping Calendar type to/from Cloud
+ * Datastore. Calendar objects are mapped to DateTime type in the Cloud
+ * Datastore. The values are stored with a maximum precision of milliseconds.
+ * 
  * @author Sai Pullabhotla
+ *
  */
-public class DateMapper implements Mapper {
+public class CalendarMapper implements Mapper {
 
-    @Override
-    public ValueBuilder<?, ?, ?> toDatastore(Object input) {
-        if (input == null) {
-            return NullValue.newBuilder();
-        }
-        return TimestampValue.newBuilder(Timestamp.of((Date) input));
-    }
+	@Override
+	public ValueBuilder<?, ?, ?> toDatastore(Object input) {
+		if (input == null) {
+			return NullValue.newBuilder();
+		}
+		Calendar calendar = (Calendar) input;
+		return TimestampValue.newBuilder(Timestamp.of(calendar.getTime()));
+	}
 
 	@Override
 	public Object toModel(Value<?> input) {
@@ -55,7 +54,7 @@ public class DateMapper implements Mapper {
 		try {
 			Timestamp ts = ((TimestampValue) input).get();
 			long millis = TimeUnit.SECONDS.toMillis(ts.getSeconds()) + TimeUnit.NANOSECONDS.toMillis(ts.getNanos());
-			return new Date(millis);
+			return new Calendar.Builder().setInstant(millis).build();
 		} catch (ClassCastException exp) {
 			String pattern = "Expecting %s, but found %s";
 			throw new MappingException(

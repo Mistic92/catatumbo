@@ -16,42 +16,40 @@
 
 package com.jmethods.catatumbo.mappers;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.Locale;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.concurrent.TimeUnit;
 
+import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.NullValue;
-import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.TimestampValue;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueBuilder;
 import com.jmethods.catatumbo.Mapper;
 import com.jmethods.catatumbo.MappingException;
 
 /**
- * An implementation of {@link Mapper} for mapping {@link LocalDateTime} to/from
- * Cloud Datastore. {@link LocalDateTime} types are mapped to String type in the
- * Cloud Datastore. {@link LocalDateTime} objects are persisted into the
- * datastore with a nano-second precision in the
- * <code>uuuu-MM-dd'T'HH:mm:ss.nnnnnnnnn</code> format.
+ * An implementation of {@link Mapper} for mapping {@link ZonedDateTime} to/from
+ * Cloud Datastore. {@link ZonedDateTime} types are mapped to DateTime type in
+ * the Cloud Datastore. This maximum precision is capped to Microseconds to
+ * match with what the Datastore supports.
  * 
  * @author Sai Pullabhotla
  *
  */
-public class LocalDateTimeMapper implements Mapper {
-
-	/**
-	 * The formatter to use for converting LocalTime to String and vice versa.
-	 */
-	public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.nnnnnnnnn",
-			Locale.ENGLISH);
+public class ZonedDateTimeMapper implements Mapper {
 
 	@Override
 	public ValueBuilder<?, ?, ?> toDatastore(Object input) {
 		if (input == null) {
 			return NullValue.newBuilder();
 		}
-		return StringValue.newBuilder(((LocalDateTime) input).format(FORMATTER));
+		ZonedDateTime zonedDateTime = (ZonedDateTime) input;
+		long seconds = zonedDateTime.toEpochSecond();
+		int nanos = zonedDateTime.getNano();
+		long microseconds = TimeUnit.SECONDS.toMicros(seconds) + TimeUnit.NANOSECONDS.toMicros(nanos);
+		return TimestampValue.newBuilder(Timestamp.ofTimeMicroseconds(microseconds));
 	}
 
 	@Override
@@ -60,13 +58,14 @@ public class LocalDateTimeMapper implements Mapper {
 			return null;
 		}
 		try {
-			return LocalDateTime.parse(((StringValue) input).get(), FORMATTER);
+			Timestamp ts = ((TimestampValue) input).get();
+			long seconds = ts.getSeconds();
+			int nanos = ts.getNanos();
+			return ZonedDateTime.ofInstant(Instant.ofEpochSecond(seconds, nanos), ZoneId.systemDefault());
 		} catch (ClassCastException exp) {
-			String pattern = "Mapping of type %s to %s is not supported";
+			String pattern = "Expecting %s, but found %s";
 			throw new MappingException(
-					String.format(pattern, input.getClass().getName(), LocalDateTime.class.getName()), exp);
-		} catch (DateTimeParseException exp) {
-			throw new MappingException(exp);
+					String.format(pattern, TimestampValue.class.getName(), input.getClass().getName()), exp);
 		}
 	}
 

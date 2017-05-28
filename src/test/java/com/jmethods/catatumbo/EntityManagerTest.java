@@ -32,6 +32,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -43,6 +45,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -56,6 +59,8 @@ import com.jmethods.catatumbo.entities.ArrayIndex;
 import com.jmethods.catatumbo.entities.AutoTimestampCalendar;
 import com.jmethods.catatumbo.entities.AutoTimestampDate;
 import com.jmethods.catatumbo.entities.AutoTimestampLong;
+import com.jmethods.catatumbo.entities.AutoTimestampOffsetDateTime;
+import com.jmethods.catatumbo.entities.AutoTimestampZonedDateTime;
 import com.jmethods.catatumbo.entities.BigDecimalField;
 import com.jmethods.catatumbo.entities.BooleanField;
 import com.jmethods.catatumbo.entities.BooleanObject;
@@ -114,6 +119,7 @@ import com.jmethods.catatumbo.entities.TaskName;
 import com.jmethods.catatumbo.entities.UnindexedByteArrayField;
 import com.jmethods.catatumbo.entities.UnindexedStringField;
 import com.jmethods.catatumbo.entities.Visitor;
+import com.jmethods.catatumbo.entities.ZonedDateTimeField;
 
 /**
  * @author Sai Pullabhotla
@@ -155,6 +161,7 @@ public class EntityManagerTest {
 		em.deleteAll(LocalTimeField.class);
 		em.deleteAll(LocalDateTimeField.class);
 		em.deleteAll(OffsetDateTimeField.class);
+		em.deleteAll(ZonedDateTimeField.class);
 		em.deleteAll(ByteArrayField.class);
 		em.deleteAll(CharArrayField.class);
 		em.deleteAll(ParentEntity.class);
@@ -188,6 +195,8 @@ public class EntityManagerTest {
 		em.deleteAll(AutoTimestampDate.class);
 		em.deleteAll(AutoTimestampCalendar.class);
 		em.deleteAll(AutoTimestampLong.class);
+		em.deleteAll(AutoTimestampOffsetDateTime.class);
+		em.deleteAll(AutoTimestampZonedDateTime.class);
 		populateTasks();
 	}
 
@@ -704,10 +713,44 @@ public class EntityManagerTest {
 		OffsetDateTime now = OffsetDateTime.now().withNano(999999999);
 		entity.setTimestamp(now);
 		OffsetDateTimeField entity2 = em.insert(entity);
-		// Here we lose the nano precision and only have millis
+		// Here we lose the nano precision and only have micros
 		OffsetDateTimeField entity3 = em.load(OffsetDateTimeField.class, entity2.getId());
 		assertEquals(entity2.getTimestamp(), entity3.getTimestamp());
-		assertNotEquals(entity.getTimestamp(), entity3.getTimestamp());
+		assertEquals(entity.getTimestamp().toEpochSecond(), entity3.getTimestamp().toEpochSecond());
+		assertEquals(TimeUnit.NANOSECONDS.toMicros(entity.getTimestamp().getNano()),
+				TimeUnit.NANOSECONDS.toMicros(entity3.getTimestamp().getNano()));
+	}
+
+	@Test
+	public void testInsertZonedDateTimeField_Now() {
+		ZonedDateTimeField entity = new ZonedDateTimeField();
+		ZonedDateTime now = ZonedDateTime.now();
+		entity.setTimestamp(now);
+		entity = em.insert(entity);
+		entity = em.load(ZonedDateTimeField.class, entity.getId());
+		assertTrue(entity.getId() > 0 && entity.getTimestamp().equals(now));
+	}
+
+	@Test
+	public void testInsertZonedDateTimeField_Null() {
+		ZonedDateTimeField entity = new ZonedDateTimeField();
+		entity = em.insert(entity);
+		entity = em.load(ZonedDateTimeField.class, entity.getId());
+		assertTrue(entity.getId() > 0 && entity.getTimestamp() == null);
+	}
+
+	@Test
+	public void testInsertZonedDateTimeField_Nano() {
+		ZonedDateTimeField entity = new ZonedDateTimeField();
+		ZonedDateTime now = ZonedDateTime.now().withNano(999999999);
+		entity.setTimestamp(now);
+		ZonedDateTimeField entity2 = em.insert(entity);
+		// Here we lose the nano precision and only have micros
+		ZonedDateTimeField entity3 = em.load(ZonedDateTimeField.class, entity2.getId());
+		assertEquals(entity2.getTimestamp(), entity3.getTimestamp());
+		assertEquals(entity.getTimestamp().toEpochSecond(), entity3.getTimestamp().toEpochSecond());
+		assertEquals(TimeUnit.NANOSECONDS.toMicros(entity.getTimestamp().getNano()),
+				TimeUnit.NANOSECONDS.toMicros(entity3.getTimestamp().getNano()));
 	}
 
 	@Test
@@ -1313,6 +1356,31 @@ public class EntityManagerTest {
 		entity.setTimestamp(null);
 		entity = em.update(entity);
 		entity = em.load(OffsetDateTimeField.class, entity.getId());
+		assertNull(entity.getTimestamp());
+	}
+
+	@Test
+	public void testUpdateZonedDateTimeField() {
+		ZonedDateTimeField entity = new ZonedDateTimeField();
+		ZonedDateTime now = ZonedDateTime.now();
+		entity.setTimestamp(now);
+		entity = em.insert(entity);
+		ZonedDateTime nextDay = now.plusDays(2);
+		entity.setTimestamp(nextDay);
+		entity = em.update(entity);
+		entity = em.load(ZonedDateTimeField.class, entity.getId());
+		assertEquals(nextDay, entity.getTimestamp());
+	}
+
+	@Test
+	public void testUpdateZonedDateTimeField_Null() {
+		ZonedDateTimeField entity = new ZonedDateTimeField();
+		ZonedDateTime now = ZonedDateTime.now();
+		entity.setTimestamp(now);
+		entity = em.insert(entity);
+		entity.setTimestamp(null);
+		entity = em.update(entity);
+		entity = em.load(ZonedDateTimeField.class, entity.getId());
 		assertNull(entity.getTimestamp());
 	}
 
@@ -2855,6 +2923,52 @@ public class EntityManagerTest {
 		assertNotEquals(entity3.getCreatedDate(), entity4.getModifiedDate());
 	}
 
+	@Test
+	public void testInsertTimestamp_OffsetDateTime() {
+		AutoTimestampOffsetDateTime entity = new AutoTimestampOffsetDateTime();
+		entity.setName("Insert");
+		AutoTimestampOffsetDateTime entity2 = em.insert(entity);
+		assertNotNull(entity2.getCreatedOn());
+		assertNotNull(entity2.getModifiedOn());
+		assertEquals(entity2.getCreatedOn(), entity2.getModifiedOn());
+	}
+
+	@Test
+	public void testUpdateTimestamp_OffsetDateTime() {
+		AutoTimestampOffsetDateTime entity = new AutoTimestampOffsetDateTime();
+		entity.setName("Insert");
+		AutoTimestampOffsetDateTime entity2 = em.insert(entity);
+		AutoTimestampOffsetDateTime entity3 = em.load(AutoTimestampOffsetDateTime.class, entity2.getId());
+		entity3.setName("Update");
+		AutoTimestampOffsetDateTime entity4 = em.update(entity3);
+		assertEquals(entity2.getCreatedOn(), entity3.getCreatedOn());
+		assertEquals(entity3.getCreatedOn(), entity4.getCreatedOn());
+		assertNotEquals(entity3.getCreatedOn(), entity4.getModifiedOn());
+	}
+
+	@Test
+	public void testInsertTimestamp_ZonedDateTime() {
+		AutoTimestampZonedDateTime entity = new AutoTimestampZonedDateTime();
+		entity.setName("Insert");
+		AutoTimestampZonedDateTime entity2 = em.insert(entity);
+		assertNotNull(entity2.getCreatedOn());
+		assertNotNull(entity2.getModifiedOn());
+		assertEquals(entity2.getCreatedOn(), entity2.getModifiedOn());
+	}
+
+	@Test
+	public void testUpdateTimestamp_ZonedDateTime() {
+		AutoTimestampZonedDateTime entity = new AutoTimestampZonedDateTime();
+		entity.setName("Insert");
+		AutoTimestampZonedDateTime entity2 = em.insert(entity);
+		AutoTimestampZonedDateTime entity3 = em.load(AutoTimestampZonedDateTime.class, entity2.getId());
+		entity3.setName("Update");
+		AutoTimestampZonedDateTime entity4 = em.update(entity3);
+		assertEquals(entity2.getCreatedOn(), entity3.getCreatedOn());
+		assertEquals(entity3.getCreatedOn(), entity4.getCreatedOn());
+		assertNotEquals(entity3.getCreatedOn(), entity4.getModifiedOn());
+	}
+
 	@Test(expected = EntityManagerException.class)
 	public void testInsertProjectedEntity() {
 		ContactProjection entity = new ContactProjection();
@@ -2946,6 +3060,166 @@ public class EntityManagerTest {
 		assertNull(entities.get(2));
 		assertNull(entities.get(3));
 		assertNull(entities.get(4));
+	}
+
+	@Test
+	public void testQueryByLocalDate_PositionalBinding() {
+		em.deleteAll(LocalDateField.class);
+		LocalDateField entity = new LocalDateField();
+		LocalDate birthDate = LocalDate.of(2007, 1, 12);
+		entity.setBirthDate(birthDate);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM LocalDateField WHERE birthDate=@1";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.addPositionalBindings(birthDate);
+		QueryResponse<LocalDateField> response = em.executeEntityQueryRequest(LocalDateField.class, request);
+		List<LocalDateField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
+	}
+
+	@Test
+	public void testQueryByLocalDate_NamedBinding() {
+		em.deleteAll(LocalDateField.class);
+		LocalDateField entity = new LocalDateField();
+		LocalDate birthDate = LocalDate.of(2007, 1, 12);
+		entity.setBirthDate(birthDate);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM LocalDateField WHERE birthDate=@BirthDate";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.setNamedBinding("BirthDate", birthDate);
+		QueryResponse<LocalDateField> response = em.executeEntityQueryRequest(LocalDateField.class, request);
+		List<LocalDateField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
+	}
+
+	@Test
+	public void testQueryByLocalTime_PositionalBinding() {
+		em.deleteAll(LocalTimeField.class);
+		LocalTimeField entity = new LocalTimeField();
+		LocalTime time = LocalTime.of(0, 0, 0, 1);
+		entity.setStartTime(time);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM LocalTimeField WHERE startTime=@1";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.addPositionalBindings(time);
+		QueryResponse<LocalTimeField> response = em.executeEntityQueryRequest(LocalTimeField.class, request);
+		List<LocalTimeField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
+	}
+
+	@Test
+	public void testQueryByLocalTime_NamedBinding() {
+		em.deleteAll(LocalTimeField.class);
+		LocalTimeField entity = new LocalTimeField();
+		LocalTime time = LocalTime.of(0, 0, 0, 1);
+		entity.setStartTime(time);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM LocalTimeField WHERE startTime=@Time";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.setNamedBinding("Time", time);
+		QueryResponse<LocalTimeField> response = em.executeEntityQueryRequest(LocalTimeField.class, request);
+		List<LocalTimeField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
+	}
+
+	@Test
+	public void testQueryByLocalDateTime_PositionalBinding() {
+		em.deleteAll(LocalDateTimeField.class);
+		LocalDateTimeField entity = new LocalDateTimeField();
+		LocalDateTime timestamp = LocalDateTime.of(2007, 1, 12, 10, 30, 3, 456789);
+		entity.setTimestamp(timestamp);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM LocalDateTimeField WHERE timestamp=@1";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.addPositionalBindings(timestamp);
+		QueryResponse<LocalDateTimeField> response = em.executeEntityQueryRequest(LocalDateTimeField.class, request);
+		List<LocalDateTimeField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
+	}
+
+	@Test
+	public void testQueryByLocalDateTime_NamedBinding() {
+		em.deleteAll(LocalDateTimeField.class);
+		LocalDateTimeField entity = new LocalDateTimeField();
+		LocalDateTime timestamp = LocalDateTime.of(1947, 8, 15, 0, 0, 0, 999999999);
+		entity.setTimestamp(timestamp);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM LocalDateTimeField WHERE timestamp=@ts";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.setNamedBinding("ts", timestamp);
+		QueryResponse<LocalDateTimeField> response = em.executeEntityQueryRequest(LocalDateTimeField.class, request);
+		List<LocalDateTimeField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
+	}
+
+	@Test
+	public void testQueryByOffsetDateTime_PositionalBinding() {
+		em.deleteAll(OffsetDateTimeField.class);
+		OffsetDateTimeField entity = new OffsetDateTimeField();
+		OffsetDateTime timestamp = OffsetDateTime.of(2007, 1, 12, 10, 30, 3, 456789012, ZoneOffset.of("Z"));
+		entity.setTimestamp(timestamp);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM OffsetDateTimeField WHERE timestamp=@1";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.addPositionalBindings(timestamp);
+		QueryResponse<OffsetDateTimeField> response = em.executeEntityQueryRequest(OffsetDateTimeField.class, request);
+		List<OffsetDateTimeField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
+	}
+
+	@Test
+	public void testQueryByOffsetDateTime_NamedBinding() {
+		em.deleteAll(OffsetDateTimeField.class);
+		OffsetDateTimeField entity = new OffsetDateTimeField();
+		OffsetDateTime timestamp = OffsetDateTime.of(2007, 1, 12, 10, 30, 3, 456789012, ZoneOffset.of("Z"));
+		entity.setTimestamp(timestamp);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM OffsetDateTimeField WHERE timestamp=@Search";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.setNamedBinding("Search", timestamp);
+		QueryResponse<OffsetDateTimeField> response = em.executeEntityQueryRequest(OffsetDateTimeField.class, request);
+		List<OffsetDateTimeField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
+	}
+
+	@Test
+	public void testQueryByZonedDateTime_PositionalBinding() {
+		em.deleteAll(ZonedDateTimeField.class);
+		ZonedDateTimeField entity = new ZonedDateTimeField();
+		ZonedDateTime timestamp = ZonedDateTime.of(2007, 1, 12, 10, 30, 3, 456789012, ZoneOffset.of("Z"));
+		entity.setTimestamp(timestamp);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM ZonedDateTimeField WHERE timestamp=@1";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.addPositionalBindings(timestamp);
+		QueryResponse<ZonedDateTimeField> response = em.executeEntityQueryRequest(ZonedDateTimeField.class, request);
+		List<ZonedDateTimeField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
+	}
+
+	@Test
+	public void testQueryByZonedDateTime_NamedBinding() {
+		em.deleteAll(ZonedDateTimeField.class);
+		ZonedDateTimeField entity = new ZonedDateTimeField();
+		ZonedDateTime timestamp = ZonedDateTime.of(2007, 1, 12, 10, 30, 3, 456789012, ZoneOffset.of("Z"));
+		entity.setTimestamp(timestamp);
+		entity = em.insert(entity);
+		String query = "SELECT * FROM ZonedDateTimeField WHERE timestamp=@Timestamp";
+		EntityQueryRequest request = em.createEntityQueryRequest(query);
+		request.setNamedBinding("Timestamp", timestamp);
+		QueryResponse<ZonedDateTimeField> response = em.executeEntityQueryRequest(ZonedDateTimeField.class, request);
+		List<ZonedDateTimeField> entities = response.getResults();
+		System.out.println(entities);
+		assertTrue(entities.size() == 1);
 	}
 
 	private static Calendar getToday() {

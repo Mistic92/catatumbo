@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -62,6 +63,7 @@ import com.jmethods.catatumbo.mappers.MapMapper;
 import com.jmethods.catatumbo.mappers.OffsetDateTimeMapper;
 import com.jmethods.catatumbo.mappers.ShortMapper;
 import com.jmethods.catatumbo.mappers.StringMapper;
+import com.jmethods.catatumbo.mappers.ZonedDateTimeMapper;
 
 /**
  * A factory for producing data mappers that are used for mapping fields of
@@ -284,6 +286,7 @@ public class MapperFactory {
 		cache.put(LocalTime.class, new LocalTimeMapper());
 		cache.put(LocalDateTime.class, new LocalDateTimeMapper());
 		cache.put(OffsetDateTime.class, new OffsetDateTimeMapper());
+		cache.put(ZonedDateTime.class, new ZonedDateTimeMapper());
 	}
 
 	/**

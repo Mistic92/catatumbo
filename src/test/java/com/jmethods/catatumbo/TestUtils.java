@@ -16,8 +16,12 @@
 
 package com.jmethods.catatumbo;
 
+import java.io.FileNotFoundException;
+import java.util.Random;
+
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreOptions;
+import com.google.cloud.http.HttpTransportOptions;
 import com.jmethods.catatumbo.impl.DefaultEntityManager;
 
 import java.io.FileNotFoundException;

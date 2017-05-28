@@ -17,6 +17,12 @@
 package com.jmethods.catatumbo.mappers;
 
 import com.google.cloud.Timestamp;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.concurrent.TimeUnit;
+
+import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.NullValue;
 import com.google.cloud.datastore.TimestampValue;
 import com.google.cloud.datastore.Value;
@@ -31,7 +37,8 @@ import java.util.Date;
 /**
  * An implementation of {@link Mapper} for mapping {@link OffsetDateTime}
  * to/from Cloud Datastore. {@link OffsetDateTime} types are mapped to DateTime
- * type in the Cloud Datastore.
+ * type in the Cloud Datastore. This maximum precision is capped to Microseconds
+ * to match with what the Datastore supports.
  * 
  * @author Sai Pullabhotla
  *
@@ -44,8 +51,10 @@ public class OffsetDateTimeMapper implements Mapper {
 			return NullValue.newBuilder();
 		}
 		OffsetDateTime offsetDateTime = (OffsetDateTime) input;
-		Date date = Date.from(offsetDateTime.toInstant());
-		return TimestampValue.newBuilder(Timestamp.of(date));
+		long seconds = offsetDateTime.toEpochSecond();
+		int nanos = offsetDateTime.getNano();
+		long microseconds = TimeUnit.SECONDS.toMicros(seconds) + TimeUnit.NANOSECONDS.toMicros(nanos);
+		return TimestampValue.newBuilder(Timestamp.ofTimeMicroseconds(microseconds));
 	}
 
 	@Override
@@ -54,10 +63,10 @@ public class OffsetDateTimeMapper implements Mapper {
 			return null;
 		}
 		try {
-			TimestampValue dateTimeValue = (TimestampValue) input;
-			Timestamp dateTime = dateTimeValue.get();
-			Date date = new Date(dateTime.getNanos()*1000);
-			return OffsetDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault());
+			Timestamp ts = ((TimestampValue) input).get();
+			long seconds = ts.getSeconds();
+			int nanos = ts.getNanos();
+			return OffsetDateTime.ofInstant(Instant.ofEpochSecond(seconds, nanos), ZoneId.systemDefault());
 		} catch (ClassCastException exp) {
 			String pattern = "Expecting %s, but found %s";
 			throw new MappingException(

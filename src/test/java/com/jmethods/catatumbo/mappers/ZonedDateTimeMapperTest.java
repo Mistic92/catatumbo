@@ -18,10 +18,8 @@ package com.jmethods.catatumbo.mappers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
-import java.time.OffsetDateTime;
-import java.util.Calendar;
+import java.time.ZonedDateTime;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
@@ -31,23 +29,17 @@ import com.google.cloud.datastore.NullValue;
 import com.google.cloud.datastore.StringValue;
 import com.google.cloud.datastore.TimestampValue;
 import com.jmethods.catatumbo.MappingException;
-import org.junit.Test;
-
-import java.time.OffsetDateTime;
-
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Sai Pullabhotla
  *
  */
-public class OffsetDateTimeMapperTest {
+public class ZonedDateTimeMapperTest {
 
 	@Test
 	public void testToDatastore_Now() {
-		OffsetDateTimeMapper mapper = new OffsetDateTimeMapper();
-		OffsetDateTime now = OffsetDateTime.now();
+		ZonedDateTimeMapper mapper = new ZonedDateTimeMapper();
+		ZonedDateTime now = ZonedDateTime.now();
 		Timestamp ts = ((TimestampValue) mapper.toDatastore(now).build()).get();
 		assertEquals(now.toEpochSecond(), ts.getSeconds());
 		assertEquals(now.getNano(), ts.getNanos());
@@ -55,8 +47,8 @@ public class OffsetDateTimeMapperTest {
 
 	@Test
 	public void testToDatastorel_Nanos() {
-		OffsetDateTime input = OffsetDateTime.now().withNano(999999999);
-		OffsetDateTimeMapper mapper = new OffsetDateTimeMapper();
+		ZonedDateTime input = ZonedDateTime.now().withNano(999999999);
+		ZonedDateTimeMapper mapper = new ZonedDateTimeMapper();
 		Timestamp ts = ((TimestampValue) mapper.toDatastore(input).build()).get();
 		assertEquals(ts.getSeconds(), input.toEpochSecond());
 		assertEquals(TimeUnit.NANOSECONDS.toMicros(input.getNano()), TimeUnit.NANOSECONDS.toMicros(ts.getNanos()));
@@ -64,31 +56,32 @@ public class OffsetDateTimeMapperTest {
 
 	@Test
 	public void testToDatastore_Null() {
-		OffsetDateTimeMapper mapper = new OffsetDateTimeMapper();
+		ZonedDateTimeMapper mapper = new ZonedDateTimeMapper();
 		NullValue v = (NullValue) mapper.toDatastore(null).build();
 		assertNull(v.get());
 	}
 
 	@Test
 	public void testToModel_Now() {
-		Calendar now = Calendar.getInstance();
-		TimestampValue v = TimestampValue.newBuilder(Timestamp.of(now.getTime())).build();
-		OffsetDateTimeMapper mapper = new OffsetDateTimeMapper();
-		OffsetDateTime output = (OffsetDateTime) mapper.toModel(v);
-		assertTrue(now.getTimeInMillis() == output.toInstant().toEpochMilli());
+		Timestamp now = Timestamp.now();
+		TimestampValue v = TimestampValue.newBuilder(now).build();
+		ZonedDateTimeMapper mapper = new ZonedDateTimeMapper();
+		ZonedDateTime output = (ZonedDateTime) mapper.toModel(v);
+		assertEquals(now.getSeconds(), output.toEpochSecond());
+		assertEquals(now.getNanos(), output.getNano());
 	}
 
 	@Test
 	public void testToModel_Null() {
-		OffsetDateTimeMapper mapper = new OffsetDateTimeMapper();
-		OffsetDateTime output = (OffsetDateTime) mapper.toModel(NullValue.of());
+		ZonedDateTimeMapper mapper = new ZonedDateTimeMapper();
+		ZonedDateTime output = (ZonedDateTime) mapper.toModel(NullValue.of());
 		assertNull(output);
 	}
 
 	@Test(expected = MappingException.class)
 	public void testToModel2() {
 		StringValue v = StringValue.of("Hello");
-		OffsetDateTimeMapper mapper = new OffsetDateTimeMapper();
+		ZonedDateTimeMapper mapper = new ZonedDateTimeMapper();
 		try {
 			mapper.toModel(v);
 		} catch (MappingException e) {
